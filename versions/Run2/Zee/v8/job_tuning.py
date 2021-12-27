@@ -9,7 +9,7 @@ try:
 except Exception as e:
   print(e)
   print("Not possible to set gpu allow growth")
-
+import traceback
 
 
 def getPatterns( path, cv, sort):
@@ -17,7 +17,6 @@ def getPatterns( path, cv, sort):
   pidname = 'el_lhmedium'
   from kepler.pandas import load_hdf
   import numpy as np
-  print(path)
   df = load_hdf(path)
   df = df.loc[ ((df[pidname]==True) & (df.target==1.0)) | ((df.target==0) & (df['el_lhvloose']==False) ) ]
   col_names= ['trig_L2_cl_ring_%d'%i for i in range(100)]
@@ -135,6 +134,7 @@ try:
   sys.exit(0)
 
 except  Exception as e:
+  traceback.print_exc()
   print(e )
   # necessary to work on orchestra
   from saphyra import lock_as_failed_job
