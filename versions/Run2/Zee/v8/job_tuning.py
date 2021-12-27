@@ -3,7 +3,6 @@
 try:
   from tensorflow.compat.v1 import ConfigProto
   from tensorflow.compat.v1 import InteractiveSession
-
   config = ConfigProto()
   config.gpu_options.allow_growth = True
   session = InteractiveSession(config=config)
@@ -15,19 +14,27 @@ except Exception as e:
 
 def getPatterns( path, cv, sort):
 
+  pidname = 'el_lhmedium'
+  from kepler.pandas import load_hdf
+  import numpy as np
+  print(path)
+  df = load_hdf(path)
+  df = df.loc[ ((df[pidname]==True) & (df.target==1.0)) | ((df.target==0) & (df['el_lhvloose']==False) ) ]
+  col_names= ['trig_L2_cl_ring_%d'%i for i in range(100)]
+  rings = df[col_names].values.astype(np.float32)
+
+
+    
   def norm1( data ):
       norms = np.abs( data.sum(axis=1) )
       norms[norms==0] = 1
       return data/norms[:,None]
+    
+  target = df['target'].values.astype(np.int16)
 
-  from Gaugi import load
-  import numpy as np
-  d = load(path)
-  data = norm1(d['data'][:,1:101])
-  target = d['target']
+  data = norm1(rings)
   target[target!=1]=-1
   splits = [(train_index, val_index) for train_index, val_index in cv.split(data,target)]
-
   x_train = data [ splits[sort][0]]
   y_train = target [ splits[sort][0] ]
   x_val = data [ splits[sort][1]]
@@ -87,10 +94,11 @@ try:
 
 
   targets = [
-                ('tight_cutbased' , 'T0HLTElectronT2CaloTight'        ),
-                ('medium_cutbased', 'T0HLTElectronT2CaloMedium'       ),
-                ('loose_cutbased' , 'T0HLTElectronT2CaloLoose'        ),
-                ('vloose_cutbased', 'T0HLTElectronT2CaloVLoose'       ),
+                # cutbased!
+                ('tight' , 'trig_L2_cl_tight'       ),
+                ('medium', 'trig_L2_cl_medium'      ),
+                ('loose' , 'trig_L2_cl_loose'       ),
+                ('vloose', 'trig_L2_cl_vloose'      ),
                 ]
 
 
@@ -111,7 +119,7 @@ try:
                                   metrics           = ['accuracy'],
                                   callbacks         = [sp(patience=25, verbose=True, save_the_best=True)],
                                   epochs            = 5000,
-                                  class_weight      = False,
+                                  class_weight      = True,
                                   outputFile        = outputFile )
 
   job.decorators += decorators
@@ -127,12 +135,10 @@ try:
   sys.exit(0)
 
 except  Exception as e:
-  print(e)
-
+  print(e )
   # necessary to work on orchestra
   from saphyra import lock_as_failed_job
   lock_as_failed_job(args.volume if args.volume else '.')
-
   sys.exit(1)
 
 
