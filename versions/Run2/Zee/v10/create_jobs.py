@@ -32,12 +32,12 @@ models = [
 
 
 create_jobs( models        = models,
-             nInits        = 10,
+             nInits        = 5,
              nInitsPerJob  = 1,
              sortBounds    = 10,
              nSortsPerJob  = 1,
              nModelsPerJob = 1,
-             outputFolder  = 'job_config.Zee_v10.10sorts.10init.r2',
+             outputFolder  = 'job_config.Zee_v10.10sorts.5inits',
              )
 
 
