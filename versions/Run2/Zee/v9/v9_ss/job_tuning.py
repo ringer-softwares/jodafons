@@ -62,6 +62,8 @@ def getPatterns( path, cv, sort):
 
   target      = df['target'].values.astype(np.int16)
 
+  target[target==0] = -1
+
   n = target.shape[0]
   data_reta   = df['trig_L2_cl_reta'].astype(np.float32).to_numpy().reshape((n,1))  / 1.
   data_eratio = df['trig_L2_cl_eratio'].astype(np.float32).to_numpy().reshape((n,1))  / 1.
@@ -137,7 +139,7 @@ try:
   job = BinaryClassificationJob(  PatternGenerator( args.dataFile, getPatterns ),
                                   StratifiedKFold(n_splits=10, random_state=512, shuffle=True),
                                   job               = args.configFile,
-                                  loss              = 'binary_crossentropy',
+                                  loss              = 'mean_squared_error',
                                   metrics           = ['accuracy'],
                                   callbacks         = [sp(patience=25, verbose=True, save_the_best=True)],
                                   epochs            = 10,
