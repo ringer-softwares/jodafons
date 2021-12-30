@@ -21,7 +21,7 @@ def getPatterns( path, cv, sort):
   df = df.loc[ ((df[pidname]==True) & (df.target==1.0)) | ((df.target==0) & (df['el_lhvloose']==False) ) ]
 
 
-# for new training, we selected 1/2 of rings in each layer
+  # for new training, we selected 1/2 of rings in each layer
   #pre-sample - 8 rings
   # EM1 - 64 rings
   # EM2 - 8 rings
