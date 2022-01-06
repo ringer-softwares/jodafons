@@ -2,17 +2,17 @@
 import os
 basepath = os.getcwd()
 
-path = basepath + '/Zee/v10'
+path = basepath + '/Zee/v15'
 
 # from...
 exec_cmd = "git clone https://github.com/ringer-softwares/jodafons.git && "
 # exec this
-exec_cmd+= "python jodafons/versions/Run2/Zee/v10/job_tuning.py -c %IN -d %DATA -r %REF -v %OUT"
+exec_cmd+= "python jodafons/versions/Run2/Zee/v15/job_tuning.py -c %IN -d %DATA -r %REF -v %OUT"
 
 command = """maestro.py task create \
   -v {PATH} \
-  -t user.jodafons.data17_13TeV.AllPeriods.sgn.probes_lhmedium_EGAM1.bkg.VProbes_EGAM7.GRL_v97.v10.25bins_et{ET}_eta{ETA}.r0 \
-  -c user.jodafons.job_config.Zee_v10.10sorts.5inits \
+  -t user.jodafons.data17_13TeV.AllPeriods.sgn.probes_lhmedium_EGAM1.bkg.VProbes_EGAM7.GRL_v97.v15.25bins_et{ET}_eta{ETA}.r0 \
+  -c user.jodafons.job_config.Zee_v15.10sorts.5inits \
   -d user.jodafons.data17_13TeV.AllPeriods.sgn.probes_lhvloose_EGAM1.bkg.vprobes_vlhvloose_EGAM7.GRL_v97.25bins_et{ET}_eta{ETA}.h5 \
   --sd "{REF}" \
   --exec "{EXEC}" \

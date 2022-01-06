@@ -141,7 +141,7 @@ try:
                                   loss              = 'binary_crossentropy',
                                   metrics           = ['accuracy'],
                                   callbacks         = [sp(patience=25, verbose=True, save_the_best=True)],
-                                  epochs            = 10,
+                                  epochs            = 5000,
                                   class_weight      = True,
                                   outputFile        = outputFile )
 
