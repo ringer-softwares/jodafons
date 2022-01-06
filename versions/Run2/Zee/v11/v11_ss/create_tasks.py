@@ -16,6 +16,7 @@ command = """maestro.py task create \
   --sd "{REF}" \
   --exec "{EXEC}" \
   --queue "gpu" \
+  --bypass_local_test \
   """
 
 try:
