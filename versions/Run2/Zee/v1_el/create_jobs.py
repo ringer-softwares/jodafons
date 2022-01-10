@@ -28,5 +28,5 @@ create_jobs( models = get_model(),
         sortBounds    = 10,
         nSortsPerJob  = 1,
         nModelsPerJob = 1,
-        outputFolder  = 'job_config.Zee_v1_trk_el.10sorts.5inits' )
+        outputFolder  = 'job_config.Zee_v1_el.10sorts.5inits' )
 

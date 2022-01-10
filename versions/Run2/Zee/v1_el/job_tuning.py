@@ -104,10 +104,7 @@ try:
 
   targets = [
                 # cutbased!
-                ('tight' , 'trig_L2_cl_tight'       ),
-                ('medium', 'trig_L2_cl_medium'      ),
-                ('loose' , 'trig_L2_cl_loose'       ),
-                ('vloose', 'trig_L2_cl_vloose'      ),
+                ('loosetrk', 'trig_L2_el_accept'      ),
                 ]
 
 
