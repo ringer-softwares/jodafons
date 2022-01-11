@@ -67,7 +67,7 @@ args = parser.parse_args()
 #
 class Model( model_generator_base ):
 
-  def __init__( self, trk_path, shower_path ):
+  def __init__( self, rings, trk_path, shower_path ):
 
     model_generator_base.__init__(self)
     import tensorflow as tf
@@ -100,6 +100,7 @@ class Model( model_generator_base ):
     self.__model = tf.keras.Model([input_rings, input_trk, input_shower_shapes], output, name = "model")
     self.__tuned_trk_models = self.load_models(trk_path)
     self.__tuned_shower_models = self.load_models(shower_path)
+    self.__tuned_rings_models = self.load_models(rings_path)
 
  
     # Follow the strategy proposed by werner were we keep these weights free to do the fine tunings
@@ -268,7 +269,7 @@ try:
 
   # create decorators
   decorators = [Summary(), Reference(args.refFile, targets)]
-  model = Model( args.path_to_trk, args.path_to_shower )
+  model = Model( args.path_to_rings, args.path_to_trk, args.path_to_shower )
   #
   # Create the binary job
   #
