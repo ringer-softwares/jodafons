@@ -20,56 +20,46 @@ def getPatterns( path, cv, sort):
       norms[norms==0] = 1
       return data/norms[:,None]
 
+  def reshape_to_vortex( input_data):
+    print("Applying spiral ringer shape...")
+   
+    # NOTE: Do not change this if you dont know what are you doing
+    frame =     [ [72,73,74,75,76,77,78,79,80,81],
+                  [71,42,43,44,45,46,47,48,49,82],
+                  [70,41,20,21,22,23,24,25,50,83],
+                  [69,40,19,6 ,7 ,8 ,9 ,26,51,84],
+                  [68,39,18,5 ,0 ,1 ,10,27,52,85],
+                  [67,38,17,4 ,3 ,2 ,11,28,53,86],
+                  [66,37,16,15,14,13,12,29,54,87],
+                  [65,36,35,34,33,32,31,30,55,88],
+                  [64,63,62,61,60,59,58,57,56,89],
+                  [99,98,97,96,95,94,93,92,91,90],
+                ]
+    from copy import deepcopy
+    zeros_to_complete = np.zeros((input_data.shape[0],100-input_data.shape[1]))
+    data = deepcopy(np.hstack([input_data, zeros_to_complete]))
+    d = deepcopy(data.reshape( 1,10,10,data.shape[0] ))
+    data=data.T
+    for i in range(10):
+        for j in range(10):
+            d[0][i][j][::] = data[ frame[i][j] ][::]
+    d=d.T
+    return d
+
   pidname = 'el_lhmedium'
   from kepler.pandas import load_hdf
   import numpy as np
   df = load_hdf(path)
   df = df.loc[ ((df[pidname]==True) & (df.target==1.0)) | ((df.target==0) & (df['el_lhvloose']==False) ) ]
-
-
-  # for new training, we selected 1/2 of rings in each layer
-  #pre-sample - 8 rings
-  # EM1 - 64 rings
-  # EM2 - 8 rings
-  # EM3 - 8 rings
-  # Had1 - 4 rings
-  # Had2 - 4 rings
-  # Had3 - 4 rings
-  prefix = 'trig_L2_cl_ring_%i'
-
-  # rings presmaple 
-  presample = [prefix %iring for iring in range(8//2)]
-
-  # EM1 list
-  sum_rings = 8
-  em1 = [prefix %iring for iring in range(sum_rings, sum_rings+(64//2))]
-
-  # EM2 list
-  sum_rings = 8+64
-  em2 = [prefix %iring for iring in range(sum_rings, sum_rings+(8//2))]
-
-  # EM3 list
-  sum_rings = 8+64+8
-  em3 = [prefix %iring for iring in range(sum_rings, sum_rings+(8//2))]
-
-  # HAD1 list
-  sum_rings = 8+64+8+8
-  had1 = [prefix %iring for iring in range(sum_rings, sum_rings+(4//2))]
-
-  # HAD2 list
-  sum_rings = 8+64+8+8+4
-  had2 = [prefix %iring for iring in range(sum_rings, sum_rings+(4//2))]
-
-  # HAD3 list
-  sum_rings = 8+64+8+8+4+4
-  had3 = [prefix %iring for iring in range(sum_rings, sum_rings+(4//2))]
-
-  col_names = presample+em1+em2+em3+had1+had2+had3
-  print(col_names)
-
+  col_names= ['trig_L2_cl_ring_%d'%i for i in range(100)]
   rings = df[col_names].values.astype(np.float32)
 
   data = norm1(rings)
+  data = reshape_to_vortex(data)
+
+  print(data.shape)
+
+
   target = df['target'].values.astype(np.int16)
 
   splits = [(train_index, val_index) for train_index, val_index in cv.split(data,target)]
