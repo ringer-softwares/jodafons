@@ -67,7 +67,7 @@ args = parser.parse_args()
 #
 class Model( model_generator_base ):
 
-  def __init__( self, rings, trk_path, shower_path ):
+  def __init__( self, rings_path, trk_path, shower_path ):
 
     model_generator_base.__init__(self)
     import tensorflow as tf
