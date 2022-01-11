@@ -16,8 +16,9 @@ command = """maestro.py task create \
   --sd "{REF}" \
   --exec "{EXEC}" \
   --queue "gpu" \
-  --bypass_local_test \
   """
+#  --bypass_local_test \
+
 
 try:
     os.makedirs(path)

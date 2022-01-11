@@ -108,7 +108,7 @@ class Model( model_generator_base ):
     
     trk_model = self.get_best_model( self.__tuned_trk_models, sort , 0) # five neurons in the hidden layer
     MSG_INFO( self, "trk model (right):")
-    rings_model.summary()
+    trk_model.summary()
     
     shower_model = self.get_best_model( self.__tuned_shower_models, sort , 0) # five neurons in the hidden layer
     MSG_INFO( self, "shower model (left):")
