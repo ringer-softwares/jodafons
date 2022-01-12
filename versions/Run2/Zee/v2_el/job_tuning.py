@@ -80,7 +80,7 @@ class Model( model_generator_base ):
     
     # decision layer
     #input_concat = layers.Concatenate(axis=1)([dense_from_conv, dense_shower_shapes])
-    input_concat = layers.Concatenate(axis=1)([dense_trk, dense_shower_shapes])
+    input_concat = layers.Concatenate(axis=1)([ense_shower_shapes, dense_trk])
 
     dense = layers.Dense(5, activation='relu', name='dense_layer')(input_concat)
     dense = layers.Dense(1,activation='linear', name='output_for_inference')(dense)
@@ -88,7 +88,7 @@ class Model( model_generator_base ):
     output = layers.Activation('sigmoid', name='output_for_training')(dense)
 
     # Build the model
-    self.__model = tf.keras.Model([input_trk, input_shower_shapes], output, name = "model")
+    self.__model = tf.keras.Model([input_shower_shapes, input_trk], output, name = "model")
     self.__tuned_trk_models = self.load_models(trk_path)
     self.__tuned_shower_models = self.load_models(shower_path)
 
