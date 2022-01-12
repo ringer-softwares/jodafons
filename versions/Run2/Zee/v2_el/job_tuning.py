@@ -80,7 +80,7 @@ class Model( model_generator_base ):
     
     # decision layer
     #input_concat = layers.Concatenate(axis=1)([dense_from_conv, dense_shower_shapes])
-    input_concat = layers.Concatenate(axis=1)([ense_shower_shapes, dense_trk])
+    input_concat = layers.Concatenate(axis=1)([dense_shower_shapes, dense_trk])
 
     dense = layers.Dense(5, activation='relu', name='dense_layer')(input_concat)
     dense = layers.Dense(1,activation='linear', name='output_for_inference')(dense)
