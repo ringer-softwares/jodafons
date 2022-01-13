@@ -100,7 +100,7 @@ class Model( model_generator_base ):
     output = layers.Activation('sigmoid', name='output_for_training')(dense)
 
     # Build the model
-    self.__model = tf.keras.Model([input_rings, input_shower_shapes], input_trk, output, name = "model")
+    self.__model = tf.keras.Model([input_rings, input_shower_shapes, input_trk], output, name = "model")
     self.__tuned_trk_models = self.load_models(trk_path)
     self.__tuned_shower_models = self.load_models(shower_path)
     self.__tuned_rings_models = self.load_models(rings_path)
