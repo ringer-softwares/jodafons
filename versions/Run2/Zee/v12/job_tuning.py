@@ -78,7 +78,12 @@ def getPatterns( path, cv, sort):
   x_val = data [ splits[sort][1]]
   y_val = target [ splits[sort][1] ]
 
-  return x_train, x_val, y_train, y_val, splits, []
+  avgmu = df.avgmu.values
+  avgmu_train = avgmu[splits[sort][0]]
+  avgmu_val = avgmu[splits[sort][1]]
+
+  return x_train, x_val, y_train, y_val, avgmu_train, avgmu_val, splits
+
 
 
 def getPileup( path ):
