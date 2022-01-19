@@ -1,18 +1,10 @@
 #!/usr/bin/env python
 
-try:
-  from tensorflow.compat.v1 import ConfigProto
-  from tensorflow.compat.v1 import InteractiveSession
-
-  config = ConfigProto()
-  config.gpu_options.allow_growth = True
-  session = InteractiveSession(config=config)
-except Exception as e:
-  print(e)
-  print("Not possible to set gpu allow growth")
 
 
-
+#
+# Get shower shapes patterns from file
+#
 def getPatterns( path, cv, sort):
 
   def norm1( data ):
@@ -76,35 +68,25 @@ def getPatterns( path, cv, sort):
 
 
 
-def getPileup( path ):
-  from Gaugi import load
-  return load(path)['data'][:,0]
-
-
-def getJobConfigId( path ):
-  from Gaugi import load
-  return dict(load(path))['id']
-
-
 import argparse
-import sys,os
+import sys,os,traceback
 
 
 parser = argparse.ArgumentParser(description = '', add_help = False)
 parser = argparse.ArgumentParser()
 
 
-parser.add_argument('-c','--configFile', action='store',
-        dest='configFile', required = True,
-            help = "The job config file that will be used to configure the job (sort and init).")
+parser.add_argument('-t','--tunedFile', action='store',
+        dest='tunedFile', required = True,
+            help = "The tuned file to be reprocess.")
 
 parser.add_argument('-v','--volume', action='store',
-        dest='volume', required = False, default = None,
-            help = "The volume output.")
+        dest='volume', required = True, default = None,
+            help = "The volume.")
 
 parser.add_argument('-d','--dataFile', action='store',
         dest='dataFile', required = True, default = None,
-            help = "The data/target file used to train the model.")
+            help = "The data file used to train the model.")
 
 parser.add_argument('-r','--refFile', action='store',
         dest='refFile', required = True, default = None,
@@ -118,12 +100,8 @@ if len(sys.argv)==1:
 args = parser.parse_args()
 
 
+
 try:
-
-  job_id = getJobConfigId( args.configFile )
-
-
-  outputFile = args.volume+'/tunedDiscr.jobID_%s'%str(job_id).zfill(4) if args.volume else 'test.jobId_%s'%str(job_id).zfill(4)
 
 
   targets = [
@@ -135,31 +113,33 @@ try:
                 ]
 
 
-  from saphyra.decorators import Summary, Reference
-  decorators = [Summary(), Reference(args.refFile, targets)]
-
-  from saphyra.callbacks import sp
+  
+  from saphyra.decorators import Summary, Reference,LinearFit
 
 
-  from saphyra import PatternGenerator
+
+  fit = LinearFit(args.refFile, targets, 
+                  xbin_size=0.05, 
+                  ybin_size=0.5, 
+                  ymin=16, 
+                  ymax=60,  
+                  min_avgmu=16, 
+                  max_avgmu=100, 
+                  false_alarm_limit=0.5)
+
+
+
+  decorators = [Summary(), Reference(args.refFile, targets), fit]
+  
   from sklearn.model_selection import StratifiedKFold
   from saphyra.applications import BinaryClassificationJob
-
-
-  job = BinaryClassificationJob(  PatternGenerator( args.dataFile, getPatterns ),
-                                  StratifiedKFold(n_splits=10, random_state=512, shuffle=True),
-                                  job               = args.configFile,
-                                  loss              = 'binary_crossentropy',
-                                  metrics           = ['accuracy'],
-                                  callbacks         = [sp(patience=25, verbose=True, save_the_best=True)],
-                                  epochs            = 5000,
-                                  class_weight      = True,
-                                  outputFile        = outputFile )
-
-  job.decorators += decorators
-
-  # Run it!
-  job.run()
+  
+  cv = StratifiedKFold(n_splits=10, random_state=512, shuffle=True)
+  
+  from saphyra import PatternGenerator
+  from saphyra.utils import reprocess
+  
+  reprocess( PatternGenerator( args.dataFile, getPatterns), args.tunedFile, args.volume, cv, decorators )
 
 
   # necessary to work on orchestra
@@ -170,12 +150,15 @@ try:
 
 except  Exception as e:
   print(e)
+  traceback.print_exc()
 
   # necessary to work on orchestra
   from saphyra import lock_as_failed_job
   lock_as_failed_job(args.volume if args.volume else '.')
 
   sys.exit(1)
+
+
 
 
 
