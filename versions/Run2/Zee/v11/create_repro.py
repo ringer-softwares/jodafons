@@ -12,7 +12,7 @@ exec_cmd+= " && rm -rf jodafons"
 command = """maestro.py task create \
   -v {PATH} \
   -t user.jodafons.data17_13TeV.AllPeriods.sgn.probes_lhmedium_EGAM1.bkg.VProbes_EGAM7.GRL_v97.v11.25bins_et{ET}_eta{ETA}.r1 \
-  -c user.jodafons.data17_13TeV.AllPeriods.sgn.probes_lhmedium_EGAM1.bkg.VProbes_EGAM7.GRL_v97.v11.25bins_et{ET}_eta{ETA}.r0 \
+  -c user.jodafons.data17_13TeV.AllPeriods.sgn.probes_lhmedium_EGAM1.bkg.VProbes_EGAM7.GRL_v97.v11squeu.25bins_et{ET}_eta{ETA}.r0 \
   -d user.jodafons.data17_13TeV.AllPeriods.sgn.probes_lhvloose_EGAM1.bkg.vprobes_vlhvloose_EGAM7.GRL_v97.25bins_et{ET}_eta{ETA}.h5 \
   --sd "{REF}" \
   --exec "{EXEC}" \
