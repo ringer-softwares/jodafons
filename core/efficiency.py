@@ -21,8 +21,13 @@ from ROOT import TH1F, TH2F, TProfile
 import numpy as np
 import array
 import rootplotlib as rpl
-
+import root_numpy
 from prettytable import PrettyTable
+
+
+def fill_hist1d( hist, values, bins ):
+    H, _ = np.histogram(values, bins=bins )
+    return root_numpy.array2hist(H, hist)
 
 
 #
@@ -47,18 +52,22 @@ class Efficiency( Logger ):
     self.etabins    = array.array('d',etabins) if not type(etabins) is array.array else etabins
     self.mubins     = array.array('d',mubins) if not type(mubins) is array.array else mubins
     self.deltaRbins = array.array('d',deltaRbins) if not type(deltaRbins) is array.array else deltaRbins
+    
+    dphi = (3.2 - (-3.2))/20
+    self.phibins = np.arange(-3.2, 3.2+dphi, step=dphi)
 
     if type(output) is str: # We should create a new store gate
       MSG_INFO(self, "Creating the StoreGate service with path: %s", output)
       self.__store = StoreGate(output)
       for trigger in triggers:
         self.book(trigger)
-    elif type(output) is StoreGate: # Using an external store gate
+    else: # Using an external store gate
       self.__store = output
       dirs = self.__store.getDirs()
       self.triggers = np.unique([ dir.split('/')[1] for dir in dirs]).tolist()
-    else:
-      MSG_FATAL(self, "Output type should be a str (path) or the StoreGate object.")
+    
+    #else:
+    #  MSG_FATAL(self, "Output type should be a str (path) or the StoreGate object.")
 
 
   def __del__(self):
@@ -90,11 +99,11 @@ class Efficiency( Logger ):
       sg.mkdir( trigger+'/'+step )
       sg.addHistogram(TH1F('et','E_{T} distribution;E_{T};Count', len(self.etbins)-1, self.etbins ))
       sg.addHistogram(TH1F('eta','#eta distribution;#eta;Count', len(self.etabins)-1, self.etabins))
-      sg.addHistogram(TH1F("phi", "#phi distribution; #phi ; Count", 20, -3.2, 3.2))
+      sg.addHistogram(TH1F("phi", "#phi distribution; #phi ; Count", len(self.phibins)-1, self.phibins))
       sg.addHistogram(TH1F('mu' ,'<#mu> distribution;<#mu>;Count', len(self.mubins)-1, self.mubins))
       sg.addHistogram(TH1F('match_et','E_{T} matched distribution;E_{T};Count', len(self.etbins)-1, self.etbins))
       sg.addHistogram(TH1F('match_eta','#eta matched distribution;#eta;Count', len(self.etabins)-1, self.etabins))
-      sg.addHistogram(TH1F("match_phi", "#phi matched distribution; #phi ; Count", 20, -3.2, 3.2))
+      sg.addHistogram(TH1F("match_phi", "#phi matched distribution; #phi ; Count",len(self.phibins)-1, self.phibins))
       sg.addHistogram(TH1F('match_mu' ,'<#mu> matched distribution;<#mu>;Count', len(self.mubins)-1, self.mubins))
       sg.addHistogram(TH1F('deltaR','#\Delta R distribution;#\Delta R;Count', len(self.deltaRbins)-1, self.deltaRbins))
       sg.addHistogram(TH1F('match_deltaR','#\Delta R matched distribution;#\Delta R;Count', len(self.deltaRbins)-1, self.deltaRbins))
@@ -136,34 +145,41 @@ class Efficiency( Logger ):
 
     _trigger = trigger.split('__')[2] if 'TDT' in trigger else trigger.replace('HLT_', '')
 
+    # to avoid copy the entire dataframe to another variable. just copy the necessary columns
+    hold_these_cols = ['el_et','el_eta','el_phi','avgmu','el_TaP_deltaR']
+    for step in self.__steps:
+      hold_these_cols.append( ('TDT__' + step + '__' + _trigger) if 'TDT' in trigger else (step + '_' + _trigger) )
+
     sg = self.store()
     d = get_chain_dict(_trigger)
     etthr = d['etthr']
     if pidname:
-      df_temp = df.loc[ (df[pidname] == True) & (df['el_et'] >= (etthr - 5)*GeV) & (abs(df['el_eta']) <= 2.47) ]  
+      df_temp = df.loc[ (df[pidname] == True) & (df['el_et'] >= (etthr - 5)*GeV) & (abs(df['el_eta']) <= 2.47) ][hold_these_cols] 
     else: # in case of non-electron samples, we should not applied any offline requirement
-      df_temp = df.loc[ (df['el_et'] >= (etthr - 5)*GeV) & (abs(df['el_eta']) <= 2.47) ]
+      df_temp = df.loc[ (df['el_et'] >= (etthr - 5)*GeV) & (abs(df['el_eta']) <= 2.47) ][hold_these_cols]
+
 
     # Fill efficiency histograms
     def fill_histograms( path, df , col_name, etthr):
       # Fill denominator
-      rpl.hist1d.fill( sg.histogram(path+'/et'), df['el_et'].values / GeV )
+      fill_hist1d( sg.histogram(path+'/et'), df['el_et'].values / GeV , self.etbins)
       # et > etthr + 1
       df_temp = df.loc[ (df['el_et'] > (etthr + 1)*GeV ) ]
-      rpl.hist1d.fill( sg.histogram(path+'/eta'), df_temp['el_eta'].values )
-      rpl.hist1d.fill( sg.histogram(path+'/phi'), df_temp['el_phi'].values )
-      rpl.hist1d.fill( sg.histogram(path+'/mu' ), df_temp['avgmu'].values )
-      #rpl.hist1d.fill( sg.histogram(path+'/deltaR' ), df_temp['el_TaP_deltaR'].values )
+      fill_hist1d( sg.histogram(path+'/eta'), df_temp['el_eta'].values , self.etabins)
+      fill_hist1d( sg.histogram(path+'/phi'), df_temp['el_phi'].values , self.phibins)
+      fill_hist1d( sg.histogram(path+'/mu' ), df_temp['avgmu'].values  , self.mubins)
+      fill_hist1d( sg.histogram(path+'/deltaR' ), df_temp['el_TaP_deltaR'].values, self.deltaRbins)
 
       # Fill numerator
       df_temp = df.loc[ df[col_name] == True ]
       if df_temp.shape[0] > 0:
-        rpl.hist1d.fill( sg.histogram(path+'/match_et'), df_temp['el_et'].values / GeV )
+        fill_hist1d( sg.histogram(path+'/match_et'), df_temp['el_et'].values / GeV , self.etbins)
         df_temp = df_temp.loc[ (df_temp['el_et'] > (etthr + 1)*GeV ) ]
-        rpl.hist1d.fill( sg.histogram( path+'/match_eta' ), df_temp['el_eta'].values )
-        rpl.hist1d.fill( sg.histogram( path+'/match_phi' ), df_temp['el_phi'].values )
-        rpl.hist1d.fill( sg.histogram( path+'/match_mu'  ), df_temp['avgmu'].values )
-        #rpl.hist1d.fill( sg.histogram( path+'/match_deltaR'  ), df_temp['el_TaP_deltaR'].values )
+        fill_hist1d( sg.histogram( path+'/match_eta' ), df_temp['el_eta'].values, self.etabins )
+        fill_hist1d( sg.histogram( path+'/match_phi' ), df_temp['el_phi'].values, self.phibins )
+        fill_hist1d( sg.histogram( path+'/match_mu'  ), df_temp['avgmu'].values,  self.mubins)
+        fill_hist1d( sg.histogram( path+'/match_deltaR'  ), df_temp['el_TaP_deltaR'].values, self.deltaRbins)
+
 
     # Fill each trigger step
     for step in progressbar( self.__steps, prefix = 'Filling...'):
@@ -179,11 +195,19 @@ class Efficiency( Logger ):
   def table( self, trigger ):
     print(trigger)
     t = PrettyTable([ 'Step' , 'Eff [%%]', 'passed/total'] )
+
+    def get_counts(h):
+      total=0
+      # Calculate how many events passed by the threshold
+      for by in range(h.GetNbinsX()) :
+          total+=h.GetBinContent(by+1)
+      return total
+
     for step in self.__steps:
       numerator = self.store().histogram(trigger+'/'+step+'/match_eta')
       denominator = self.store().histogram(trigger+'/'+step+'/eta')
-      passed = numerator.GetEntries()
-      total  = denominator.GetEntries()
+      passed = get_counts(numerator)
+      total  = get_counts(denominator)
       eff = ( passed / total ) * 100
       t.add_row( [ step, '%1.4f'%eff, '%d/%d'%(passed,total)])
 
@@ -195,9 +219,7 @@ class Efficiency( Logger ):
   def profile(self, trigger, step, var):
     name = trigger
     numerator = self.store().histogram(name+'/'+step+'/match_'+var)
-    print(numerator)
     denominator = self.store().histogram(name+'/'+step+'/'+var)
-    print(denominator)
     return rpl.hist1d.divide(numerator,denominator)
 
 
@@ -208,9 +230,8 @@ class Efficiency( Logger ):
 def restore_efficiencies( path ):
   from Gaugi import restoreStoreGate
   store = restoreStoreGate(path)
-  #return Efficiency( store )
-  return None
-
+  return Efficiency( store )
+  
 
 #
 # Helper function to read from athena Run-2 monitoring samples
