@@ -8,11 +8,8 @@ path = basepath + '/Zee/v2_el'
 exec_cmd = "git clone https://github.com/ringer-softwares/jodafons.git && "
 # exec this
 exec_cmd+= "python jodafons/versions/Run2/Zee/v2_el/job_tuning.py -c %IN -d %DATA -r %REF -v %OUT"
-#exec_cmd+= " --ps /home/jodafons/public/tuning_data/tasks/Zee/v11_ss/user.jodafons.data17_13TeV.AllPeriods.sgn.probes_lhmedium_EGAM1.bkg.VProbes_EGAM7.GRL_v97.v11_ss.25bins_et{ET}_eta{ETA}.r0"
-exec_cmd+= " --pt /home/jodafons/public/cern_data/tunings/r0/Zee/v1_el/user.jodafons.data17_13TeV.AllPeriods.sgn.probes_lhmedium_EGAM1.bkg.VProbes_EGAM7.GRL_v97.v1_el.25bins_et{ET}_eta{ETA}.r0"
-exec_cmd+= " --pr /home/jodafons/public/cern_data/tunings/r0/Zee/v12/user.jodafons.data17_13TeV.AllPeriods.sgn.probes_lhmedium_EGAM1.bkg.VProbes_EGAM7.GRL_v97.v12.25bins_et{ET}_eta{ETA}.r0"
-
-
+exec_cmd+= " --ps /home/jodafons/public/tuning_data/tasks/Zee/v11_ss/user.jodafons.data17_13TeV.AllPeriods.sgn.probes_lhmedium_EGAM1.bkg.VProbes_EGAM7.GRL_v97.v11_ss.25bins_et{ET}_eta{ETA}.r0"
+exec_cmd+= " --pt /home/jodafons/public/tuning_data/tasks/Zee/v1_el/user.jodafons.data17_13TeV.AllPeriods.sgn.probes_lhmedium_EGAM1.bkg.VProbes_EGAM7.GRL_v97.v1_el.25bins_et{ET}_eta{ETA}.r0"
 command = """maestro.py task create \
   -v {PATH} \
   -t user.jodafons.data17_13TeV.AllPeriods.sgn.probes_lhmedium_EGAM1.bkg.VProbes_EGAM7.GRL_v97.v2_el.25bins_et{ET}_eta{ETA}.r0 \

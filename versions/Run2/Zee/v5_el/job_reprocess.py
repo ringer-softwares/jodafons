@@ -28,58 +28,6 @@ def getPatterns( path, cv, sort):
   data_weta2    = df['trig_L2_cl_weta2'].astype(np.float32).to_numpy().reshape((n,1))  / 0.02
   data_wstot    = df['trig_L2_cl_wstot'].astype(np.float32).to_numpy().reshape((n,1))  / 1.
 
-
-
-  def norm1( data ):
-      norms = np.abs( data.sum(axis=1) )
-      norms[norms==0] = 1
-      return data/norms[:,None]
-
-
-
-  # for new training, we selected 1/2 of rings in each layer
-  #pre-sample - 8 rings
-  # EM1 - 64 rings
-  # EM2 - 8 rings
-  # EM3 - 8 rings
-  # Had1 - 4 rings
-  # Had2 - 4 rings
-  # Had3 - 4 rings
-  prefix = 'trig_L2_cl_ring_%i'
-
-  # rings presmaple 
-  presample = [prefix %iring for iring in range(8//2)]
-
-  # EM1 list
-  sum_rings = 8
-  em1 = [prefix %iring for iring in range(sum_rings, sum_rings+(64//2))]
-
-  # EM2 list
-  sum_rings = 8+64
-  em2 = [prefix %iring for iring in range(sum_rings, sum_rings+(8//2))]
-
-  # EM3 list
-  sum_rings = 8+64+8
-  em3 = [prefix %iring for iring in range(sum_rings, sum_rings+(8//2))]
-
-  # HAD1 list
-  sum_rings = 8+64+8+8
-  had1 = [prefix %iring for iring in range(sum_rings, sum_rings+(4//2))]
-
-  # HAD2 list
-  sum_rings = 8+64+8+8+4
-  had2 = [prefix %iring for iring in range(sum_rings, sum_rings+(4//2))]
-
-  # HAD3 list
-  sum_rings = 8+64+8+8+4+4
-  had3 = [prefix %iring for iring in range(sum_rings, sum_rings+(4//2))]
-
-  col_names = presample+em1+em2+em3+had1+had2+had3
-  print(col_names)
-  rings = df[col_names].values.astype(np.float32)
-  data_rings = norm1(rings)
-
-
  
   # Fix all shower shapes variables
   data_eratio[data_eratio>10.0]=0
@@ -93,8 +41,8 @@ def getPatterns( path, cv, sort):
   data_trk    = np.concatenate( (data_etOverPt, data_deta, data_dphi), axis=1)
 
   # split for this sort
-  x_train = [ data_rings[splits[sort][0]], data_shower[splits[sort][0]], data_trk[splits[sort][0]] ]
-  x_val   = [ data_rings[splits[sort][1]], data_shower[splits[sort][1]], data_trk[splits[sort][1]] ]
+  x_train = [ data_shower[splits[sort][0]], data_trk[splits[sort][0]] ]
+  x_val   = [ data_shower[splits[sort][1]], data_trk[splits[sort][1]] ]
   y_train = target [ splits[sort][0] ]
   y_val   = target [ splits[sort][1] ]
 
