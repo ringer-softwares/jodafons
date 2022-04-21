@@ -168,8 +168,12 @@ class fit_table(Logger):
 
                 ref = ref_values[et_bin][eta_bin]
 
+
+                etbin_edges = (self.etbins[et_bin],self.etbins[et_bin+1])
+                etabin_edges = (self.etabins[eta_bin],self.etabins[eta_bin+1])
+
                 # read the phase space data to the memory
-                inputs, target, avgmu = input_generator( paths[et_bin][eta_bin] )
+                inputs, target, avgmu = input_generator( paths[et_bin][eta_bin], etbin_edges, etabin_edges )
 
                 splits = [(train_idx, val_idx) for train_idx,val_idx in self.__kf.split(target, target)]
 

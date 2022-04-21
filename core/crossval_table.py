@@ -369,6 +369,9 @@ class crossval_table( Logger ):
         return table.agg(['mean','std'])
 
 
+
+
+
     def evaluate( self, best_sorts, paths , data_generator, dec_generator ):
 
         tf.config.run_functions_eagerly(False)
@@ -520,8 +523,10 @@ class crossval_table( Logger ):
     #
     # Plot the training curves for all sorts.
     #
-    def plot_roc_curves( self, best_sorts, tags, legends, output, display=False, colors=None, points=None, et_bin=None, eta_bin=None,
-                         xmin=-0.02, xmax=0.3, ymin=0.8, ymax=1.02, fontsize=18, figsize=(15,15)):
+    def plot_roc_curves( self, best_sorts, tags, legends, output, display=False, colors=None, 
+                         points=None, et_bin=None, eta_bin=None,
+                         xmin=-0.02, xmax=0.3, ymin=0.8, ymax=1.02, fontsize=18, figsize=(15,15), 
+                         title=None, lines=None, markers=None, pd_ref=None):
         '''
         This method will plot the ROC curves.
 
@@ -544,19 +549,31 @@ class crossval_table( Logger ):
         - figsize: figure size just like in matplotlib
         '''
 
-        def plot_roc_curves_for_each_bin(ax, table, colors, xmin=-0.02, xmax=0.3, ymin=0.8, ymax=1.02, fontsize=18):
+        def plot_roc_curves_for_each_bin(ax, table, colors, xmin=-0.02, xmax=0.3, ymin=0.8, ymax=1.02, fontsize=18,
+                                        title=None, markers=None, lines=None):
 
           ax.set_xlabel('Fake Probability [%]',fontsize=fontsize)
           ax.set_ylabel('Detection Probability [%]',fontsize=fontsize)
-          ax.set_title(r'Roc curve (et = %d, eta = %d)'%(table.et_bin.values[0], table.eta_bin.values[0]),fontsize=fontsize)
+          
+          if title:
+              ax.set_title(title,fontsize=fontsize)
+          else:
+              ax.set_title(r'Roc curve (et = %d, eta = %d)'%(table.et_bin.values[0], table.eta_bin.values[0]),fontsize=fontsize)
 
+          
+        
           for idx, tag in enumerate(tags):
               current_table = table.loc[(table.train_tag==tag)]
 
               path=current_table.file_name.values[0]
               history = self.get_history( path, current_table.model_idx.values[0])
               pd, fa = history['summary']['rocs']['roc_op']
-              ax.plot( fa, pd, color=colors[idx], linewidth=2, label=tag)
+              if markers and lines:
+                ax.plot( fa*100, pd*100, color=colors[idx], linewidth=2, label=tag, 
+                         marker=markers[idx], markersize=7, linestyle=lines[idx],markevery=300)
+
+              else:
+                ax.plot( fa, pd, color=colors[idx], linewidth=2, label=tag)
               ax.set_ylim(ymin,ymax)
               ax.set_xlim(xmin,xmax)
 
@@ -568,8 +585,14 @@ class crossval_table( Logger ):
             fig, ax = plt.subplots(1,1, figsize=figsize)
             fig.suptitle(r'Operation ROCs', fontsize=15)
             table_for_this_bin = best_sorts.loc[(best_sorts.et_bin==et_bin) & (best_sorts.eta_bin==eta_bin)]
-            plot_roc_curves_for_each_bin( ax, table_for_this_bin, colors, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, fontsize=fontsize)
-            plt.savefig(output)
+            plot_roc_curves_for_each_bin( ax, table_for_this_bin, colors, xmin=xmin, 
+                                          xmax=xmax, ymin=ymin, ymax=ymax,title=title,
+                                          fontsize=fontsize,markers=markers,lines=lines)
+
+            if pd_ref:
+                plt.axhline(y = pd_ref, color = 'k', linestyle = '-', label='Ref.')
+            ax.legend(fontsize=fontsize)
+            plt.savefig(output,bbox_inches="tight")
             if display:
                 plt.show()
             else:
@@ -586,9 +609,9 @@ class crossval_table( Logger ):
                 for eta_bin in best_sorts.eta_bin.unique():
                     table_for_this_bin = best_sorts.loc[(best_sorts.et_bin==et_bin) & (best_sorts.eta_bin==eta_bin)]
                     plot_roc_curves_for_each_bin( ax[et_bin][eta_bin], table_for_this_bin, colors, xmin=xmin, xmax=xmax,
-                                                  ymin=ymin, ymax=ymax, fontsize=fontsize)
+                                                  ymin=ymin, ymax=ymax, fontsize=fontsize, title=title)
 
-            plt.savefig(output)
+            plt.savefig(output,bbox_inches="tight")
             if display:
                 plt.show()
             else:

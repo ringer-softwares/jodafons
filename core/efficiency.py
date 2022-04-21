@@ -52,7 +52,14 @@ class Efficiency( Logger ):
     self.etabins    = array.array('d',etabins) if not type(etabins) is array.array else etabins
     self.mubins     = array.array('d',mubins) if not type(mubins) is array.array else mubins
     self.deltaRbins = array.array('d',deltaRbins) if not type(deltaRbins) is array.array else deltaRbins
-    
+
+
+    self.highetbins    = [0.,2.,4.,6.,8.,10.,12.,14.,16.,18.,20.,22.,24.,26.,28.,
+             30.,32.,34.,36.,38.,40.,42.,44.,46.,48.,50.,55.,60.,65.,70.,100.]
+    step      = 200
+    self.highetbins.extend( np.arange(200, 800+step, step=step).tolist() )
+    self.highetbins = array.array('d',self.highetbins)
+
     dphi = (3.2 - (-3.2))/20
     self.phibins = np.arange(-3.2, 3.2+dphi, step=dphi)
 
@@ -93,6 +100,9 @@ class Efficiency( Logger ):
 
     MSG_DEBUG( self, "Booking histograms for %s", trigger )
     sg = self.store()
+  
+
+
 
     # Loop over all trigger steps
     for step in self.__steps :
@@ -101,14 +111,16 @@ class Efficiency( Logger ):
       sg.addHistogram(TH1F('eta','#eta distribution;#eta;Count', len(self.etabins)-1, self.etabins))
       sg.addHistogram(TH1F("phi", "#phi distribution; #phi ; Count", len(self.phibins)-1, self.phibins))
       sg.addHistogram(TH1F('mu' ,'<#mu> distribution;<#mu>;Count', len(self.mubins)-1, self.mubins))
+      sg.addHistogram(TH1F('deltaR','#\Delta R distribution;#\Delta R;Count', len(self.deltaRbins)-1, self.deltaRbins))
+      sg.addHistogram(TH1F('highet','E_{T} distribution;E_{T};Count', len(self.highetbins)-1, self.highetbins ))
+
       sg.addHistogram(TH1F('match_et','E_{T} matched distribution;E_{T};Count', len(self.etbins)-1, self.etbins))
       sg.addHistogram(TH1F('match_eta','#eta matched distribution;#eta;Count', len(self.etabins)-1, self.etabins))
       sg.addHistogram(TH1F("match_phi", "#phi matched distribution; #phi ; Count",len(self.phibins)-1, self.phibins))
       sg.addHistogram(TH1F('match_mu' ,'<#mu> matched distribution;<#mu>;Count', len(self.mubins)-1, self.mubins))
-      sg.addHistogram(TH1F('deltaR','#\Delta R distribution;#\Delta R;Count', len(self.deltaRbins)-1, self.deltaRbins))
       sg.addHistogram(TH1F('match_deltaR','#\Delta R matched distribution;#\Delta R;Count', len(self.deltaRbins)-1, self.deltaRbins))
-  
-  
+      sg.addHistogram(TH1F('match_highet','E_{T} matched distribution;E_{T};Count', len(self.highetbins)-1, self.highetbins ))
+
   #
   # Reset all histograms 
   #
@@ -121,11 +133,14 @@ class Efficiency( Logger ):
       sg.histogram( trigger+'/'+step+'/phi' ).Reset()
       sg.histogram( trigger+'/'+step+'/mu' ).Reset()
       sg.histogram( trigger+'/'+step+'/deltaR' ).Reset()
+      sg.histogram( trigger+'/'+step+'/highet' ).Reset()
+
       sg.histogram( trigger+'/'+step+'/match_et' ).Reset()
       sg.histogram( trigger+'/'+step+'/match_eta' ).Reset()
       sg.histogram( trigger+'/'+step+'/match_phi' ).Reset()
       sg.histogram( trigger+'/'+step+'/match_mu' ).Reset()
       sg.histogram( trigger+'/'+step+'/match_deltaR' ).Reset()
+      sg.histogram( trigger+'/'+step+'/match_highet' ).Reset()
 
 
   #
@@ -153,8 +168,15 @@ class Efficiency( Logger ):
     sg = self.store()
     d = get_chain_dict(_trigger)
     etthr = d['etthr']
+
+
     if pidname:
-      df_temp = df.loc[ (df[pidname] == True) & (df['el_et'] >= (etthr - 5)*GeV) & (abs(df['el_eta']) <= 2.47) ][hold_these_cols] 
+      off_dec = True
+      if '!' in pidname:
+        pidname = pidname.replace('!','')
+        off_dec =  False
+      df_temp = df.loc[ (df[pidname] == off_dec) & (df['el_et'] >= (etthr - 5)*GeV) 
+                        & (abs(df['el_eta']) <= 2.47) ][hold_these_cols] 
     else: # in case of non-electron samples, we should not applied any offline requirement
       df_temp = df.loc[ (df['el_et'] >= (etthr - 5)*GeV) & (abs(df['el_eta']) <= 2.47) ][hold_these_cols]
 
@@ -163,6 +185,8 @@ class Efficiency( Logger ):
     def fill_histograms( path, df , col_name, etthr):
       # Fill denominator
       fill_hist1d( sg.histogram(path+'/et'), df['el_et'].values / GeV , self.etbins)
+      fill_hist1d( sg.histogram(path+'/highet'), df['el_et'].values / GeV , self.highetbins)
+
       # et > etthr + 1
       df_temp = df.loc[ (df['el_et'] > (etthr + 1)*GeV ) ]
       fill_hist1d( sg.histogram(path+'/eta'), df_temp['el_eta'].values , self.etabins)
@@ -174,6 +198,7 @@ class Efficiency( Logger ):
       df_temp = df.loc[ df[col_name] == True ]
       if df_temp.shape[0] > 0:
         fill_hist1d( sg.histogram(path+'/match_et'), df_temp['el_et'].values / GeV , self.etbins)
+        fill_hist1d( sg.histogram(path+'/match_highet'), df_temp['el_et'].values / GeV , self.highetbins)
         df_temp = df_temp.loc[ (df_temp['el_et'] > (etthr + 1)*GeV ) ]
         fill_hist1d( sg.histogram( path+'/match_eta' ), df_temp['el_eta'].values, self.etabins )
         fill_hist1d( sg.histogram( path+'/match_phi' ), df_temp['el_phi'].values, self.phibins )
