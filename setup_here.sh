@@ -7,3 +7,4 @@ cd kepler && source scripts/setup.sh && cd ..
 cd neuralnet && source scripts/setup.sh && cd ..
 cd rootplotlib && source scripts/setup.sh && cd ..
 cd ..
+source scripts/setup.sh
