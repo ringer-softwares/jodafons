@@ -381,7 +381,9 @@ class crossval_table( Logger ):
         columns.extend(extra)
         table = collections.OrderedDict({ key:[] for key in columns} )
 
-        bins = list(product(range(len(self.__etbins)-1),range(len(self.__etabins)-1)))
+        #bins = list(product(range(len(self.__etbins)-1),range(len(self.__etabins)-1)))
+
+        bins = list(product(best_sorts.et_bin.unique(), best_sorts.eta_bin.unique()))
 
         # Loop over all et/eta bins
         for et_bin, eta_bin in tqdm( bins , desc= 'Fitting... ', ncols=70):
@@ -638,16 +640,22 @@ class crossval_table( Logger ):
         cv_table = self.describe( best_inits )
         # Create Latex Et bins
         etbins_str = []; etabins_str = []
-        for etBinIdx in range(len(self.__etbins)-1):
-            etbin = (self.__etbins[etBinIdx], self.__etbins[etBinIdx+1])
-            if etbin[1] > 100 :
+
+
+
+
+        for etBinIdx in best_inits.et_bin.unique():
+            #etbin = (self.__etbins[etBinIdx], self.__etbins[etBinIdx+1])
+            etbin = self.get_etbin_edges(etBinIdx)
+            if etbin[1] > 1000 :
                 etbins_str.append( r'$E_{T}\text{[GeV]} > %d$' % etbin[0])
             else:
                 etbins_str.append(  r'$%d < E_{T} \text{[Gev]}<%d$'%etbin )
 
         # Create Latex eta bins
-        for etaBinIdx in range( len(self.__etabins)-1 ):
-            etabin = (self.__etabins[etaBinIdx], self.__etabins[etaBinIdx+1])
+        for etaBinIdx in best_inits.eta_bin.unique():
+            #etabin = (self.__etabins[etaBinIdx], self.__etabins[etaBinIdx+1])
+            etabin = self.get_etabin_edges(etaBinIdx)
             etabins_str.append( r'$%.2f<\eta<%.2f$'%etabin )
 
         # Default colors

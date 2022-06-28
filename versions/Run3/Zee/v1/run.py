@@ -28,10 +28,46 @@ def getPatterns( path, cv, sort):
   from kepler.pandas import load_hdf
   import numpy as np
   df = load_hdf(path)
-
   df = df.loc[ ((df['el_lhmedium']==True) & (df.target==1)) | ((df.target==0) & (df['el_lhvloose']==False) ) ]
 
-  col_names =  ['trig_L2_cl_ring_%i'%r for r in range(100)] 
+  # for new training, we selected 1/2 of rings in each layer
+  #pre-sample - 8 rings
+  # EM1 - 64 rings
+  # EM2 - 8 rings
+  # EM3 - 8 rings
+  # Had1 - 4 rings
+  # Had2 - 4 rings
+  # Had3 - 4 rings
+  prefix = 'trig_L2_cl_ring_%i'
+
+  # rings presmaple 
+  presample = [prefix %iring for iring in range(8//2)]
+
+  # EM1 list
+  sum_rings = 8
+  em1 = [prefix %iring for iring in range(sum_rings, sum_rings+(64//2))]
+
+  # EM2 list
+  sum_rings = 8+64
+  em2 = [prefix %iring for iring in range(sum_rings, sum_rings+(8//2))]
+
+  # EM3 list
+  sum_rings = 8+64+8
+  em3 = [prefix %iring for iring in range(sum_rings, sum_rings+(8//2))]
+
+  # HAD1 list
+  sum_rings = 8+64+8+8
+  had1 = [prefix %iring for iring in range(sum_rings, sum_rings+(4//2))]
+
+  # HAD2 list
+  sum_rings = 8+64+8+8+4
+  had2 = [prefix %iring for iring in range(sum_rings, sum_rings+(4//2))]
+
+  # HAD3 list
+  sum_rings = 8+64+8+8+4+4
+  had3 = [prefix %iring for iring in range(sum_rings, sum_rings+(4//2))]
+
+  col_names = presample+em1+em2+em3+had1+had2+had3
   rings = df[col_names].values.astype(np.float32)
 
   def norm1( data ):
@@ -41,11 +77,10 @@ def getPatterns( path, cv, sort):
 
   data = norm1(rings)
   target = df['target'].values.astype(np.int16)
-  target[target!=1]=0
   avgmu = df.avgmu.values
 
   del df
-
+  print(np.unique(target))
   splits = [(train_index, val_index) for train_index, val_index in cv.split(data,target)]
   x_train = data [ splits[sort][0]]
   y_train = target [ splits[sort][0] ]
@@ -54,7 +89,8 @@ def getPatterns( path, cv, sort):
 
   avgmu_train = avgmu[splits[sort][0]]
   avgmu_val = avgmu[splits[sort][1]]
-
+  print('Ready!')
+  print(np.unique(y_train))
   return x_train, x_val, y_train, y_val, avgmu_train, avgmu_val, splits
 
 
@@ -114,7 +150,7 @@ try:
                 ('vloose', 'trig_L2_cl_vloose'      ),
                 ]
 
-  decorators = [Summary(), Reference(args.refFile, targets)]
+  decorators = [Summary(detailed_info=False), Reference(args.refFile, targets)]
 
 
   callbacks = [sp(patience=25, verbose=True, save_the_best=True)]

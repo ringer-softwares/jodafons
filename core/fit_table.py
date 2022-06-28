@@ -27,7 +27,6 @@ import collections
 import os
 import rootplotlib as rpl
 
-from kolmov.utils.plot_functions import plot_correction
 
 
 import ROOT

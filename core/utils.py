@@ -16,7 +16,7 @@ from Gaugi import Logger, expand_folders
 from Gaugi.macros import *
 from copy import copy
 
-from kolmov.utils.constants import str_etbins_zee, str_etabins
+#rom kolmov.utils.constants import str_etbins_zee, str_etabins
 from ROOT import kBlackBody, TCanvas, TGraphErrors, TLine, gStyle, kBlue, kBlack
 
 
