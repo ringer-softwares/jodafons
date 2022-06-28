@@ -2,9 +2,12 @@
 
 mkdir build
 cd build
-git clone https://gitlab.cern.ch/atlas-trig-egamma/ringer/neuralnet.git
-git clone https://gitlab.cern.ch/atlas-trig-egamma/ringer/kepler.git
-git clone https://gitlab.cern.ch/atlas-trig-egamma/ringer/pybeamer.git
-git clone https://gitlab.cern.ch/atlas-trig-egamma/ringer/rootplotlib.git
-git clone https://gitlab.cern.ch/atlas-trig-egamma/ringer/gaugi.git
+
+git clone https://github.com/ringer-softwares/neuralnet.git
+git clone https://github.com/ringer-softwares/kepler.git
+git clone https://github.com/ringer-softwares/pybeamer.git
+git clone https://github.com/ringer-softwares/rootplotlib.git
+git clone https://github.com/ringer-softwares/gaugi.git
+git clone https://github.com/ringer-softwares/docker.git
+
 cd ..
