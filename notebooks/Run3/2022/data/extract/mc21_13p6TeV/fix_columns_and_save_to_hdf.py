@@ -2,9 +2,10 @@
 
 from kepler import load, save_hdf
 from pandarallel import pandarallel
+import glob
 pandarallel.initialize(progress_bar=False)
 
-path='mc21_13p6TeV.801272.P8B_A14_CTEQ6L1_Jpsie3e3.Py8EG_A14NNPDF23LO_perf_JF17.15bins_et{ET}_eta{ETA}.npz'
+path='mc21_13p6TeV.601189.PhPy8EG_AZNLO_Zee.Py8EG_A14NNPDF23LO_perf_JF17.25bins_et{ET}_eta{ETA}.npz'
 
 
 def apply_cutbased(row,pid):
@@ -45,17 +46,20 @@ def apply_fast_track_cuts(row):
         return row.trig_L2_el_cut_pt50toInf
     
 
+paths = glob.glob('*.npz')
+print(paths)
 
+for d in paths:
 
-for et in range(3):
-
-    for eta in range(9):
-
-        d = path.format(ET=et, ETA=eta)
         dd = d.split('/')[-1].replace('npz','h5')
         df = load(d)
-        
-        print(df.columns.values)
+
+        print('before')
+        print(df.shape)
+        df = df.loc[(df.trig_EF_el_hascand==True) & (df.trig_L2_el_hastrack==True) & 
+                    (df.trig_EF_cl_hascluster==True) & (df.el_hastrack==True)]
+        print('after')
+        df.shape
 
         # fix some columns
         for wp in ['tight', 'medium','loose','vloose']:
@@ -77,6 +81,12 @@ for et in range(3):
             df.drop( columns=['trig_L2_cl_%s_et0to12'%wp],  inplace=True)
 
         df.drop(columns=['trig_L2_el_cut_pt0to15','trig_L2_el_cut_pt15to20', 'trig_L2_el_cut_pt20to50', 'trig_L2_el_cut_pt50toInf'], inplace=True)
+
+        sig_size = df.loc[df.target==1].shape[0]
+        bkg_size = df.loc[df.target==0].shape[0]
+
+
+        print('Signal: %d, Background: %d'%(sig_size, bkg_size))
 
         save_hdf(df, dd)
 
